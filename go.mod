@@ -7,9 +7,11 @@ require github.com/pkg/errors v0.9.1
 require (
 	github.com/docker/docker v23.0.1+incompatible
 	github.com/eatmoreapple/openwechat v1.4.1
+	github.com/google/uuid v1.1.2
 	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
 	github.com/miekg/dns v1.1.50
-	github.com/sashabaranov/go-gpt3 v1.3.3
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/sashabaranov/go-openai v1.5.3
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.15.0
 	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6
@@ -36,12 +38,12 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/net v0.5.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.6.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.1.12 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

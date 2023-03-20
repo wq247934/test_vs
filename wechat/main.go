@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/eatmoreapple/openwechat"
+	"os"
 	"strings"
 	_21point "test_vs/wechat/21point"
+	"test_vs/wechat/chat_gpt"
+	img2 "test_vs/wechat/img"
 )
 
 func main() {
@@ -44,28 +47,7 @@ func main() {
 	}
 
 	bot.MessageHandler = func(msg *openwechat.Message) {
-		sender, err := msg.Sender()
-		if err != nil {
-			fmt.Println(err)
-		}
-		group, ok := sender.AsGroup()
-		if !ok {
-			return
-		}
-		user, err := msg.SenderInGroup()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println(group.NickName)
-		//if group.NickName != "测试群" && sender.UserName != "@@5934148189f368e1e6b8a9998aa151cfd998fd3329542cbe63f752798a8f1553" {
-		//	return
-		//}
-
-		fmt.Println(msg.Content)
-		if msg.IsText() && msg.IsAt() {
-			handleCli(user.NickName, msg)
-		}
+		go handleMsg(msg)
 	}
 
 	// 获取所有的好友
@@ -80,9 +62,54 @@ func main() {
 	bot.Block()
 }
 
+func handleMsg(msg *openwechat.Message) {
+	sender, err := msg.Sender()
+	if err != nil {
+		fmt.Println(err)
+	}
+	group, ok := sender.AsGroup()
+	if !ok {
+		return
+	}
+	user, err := msg.SenderInGroup()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(group.NickName)
+	//if group.NickName != "测试群" && sender.UserName != "@@5934148189f368e1e6b8a9998aa151cfd998fd3329542cbe63f752798a8f1553" {
+	//	return
+	//}
+
+	fmt.Println("msg.ToUserName => ", msg.ToUserName)
+	fmt.Println(msg.Content)
+
+	if msg.IsText() && msg.IsAt() {
+		handleCli(user.NickName, msg)
+	}
+}
+
 var gameMode bool
 
 func handleCli(username string, msg *openwechat.Message) {
+
+	if gameMode {
+		playGame(username, msg)
+		return
+	}
+	switch {
+	case strings.HasSuffix(msg.Content, "开启游戏模式"):
+		gameMode = true
+		msg.ReplyText("已开启")
+	case strings.HasSuffix(msg.Content, "reset"), strings.HasSuffix(msg.Content, "重置"):
+		msg.ReplyText(chat_gpt.Reset(username))
+	default:
+		msg.ReplyText(chat_gpt.Chat(username, strings.ReplaceAll(msg.Content, "@bot", "")))
+	}
+
+}
+
+func playGame(username string, msg *openwechat.Message) {
 	switch {
 	case strings.Contains(msg.Content, "开启游戏模式"):
 		gameMode = true
@@ -104,20 +131,36 @@ func handleCli(username string, msg *openwechat.Message) {
 		if !gameMode {
 			return
 		}
-		_, err := msg.ReplyText(_21point.StartGetCards(username))
+		result, images := _21point.StartGetCards(username)
+		img, err := img2.GetCardImg(images...)
 		if err != nil {
 			fmt.Println(err)
-			return
+		} else {
+			_, err := msg.ReplyImage(img)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
 		}
+		defer os.Remove(img.Name())
+		msg.ReplyText(result)
 	case strings.Contains(msg.Content, "摸牌"):
-		result, err := _21point.GetCard(username)
+		result, image, err := _21point.GetCard(username)
 		if err != nil {
 			msg.ReplyText(err.Error())
 			return
 		}
+		img, err := img2.GetCardImg(image)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			msg.ReplyImage(img)
+		}
+
 		msg.ReplyText(result)
-		if _21point.SettleGame() != "" {
-			_, err := msg.ReplyText(_21point.SettleGame())
+		result = _21point.SettleGame()
+		if result != "" {
+			_, err := msg.ReplyText(result)
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -125,8 +168,9 @@ func handleCli(username string, msg *openwechat.Message) {
 		}
 	case strings.Contains(msg.Content, "停牌"):
 		msg.ReplyText(_21point.Stop(username))
-		if _21point.SettleGame() != "" {
-			_, err := msg.ReplyText(_21point.SettleGame())
+		result := _21point.SettleGame()
+		if result != "" {
+			_, err := msg.ReplyText(result)
 			if err != nil {
 				fmt.Println(err)
 				return
