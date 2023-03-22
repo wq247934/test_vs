@@ -11,6 +11,7 @@ require (
 	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
 	github.com/miekg/dns v1.1.50
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/robfig/cron v1.2.0
 	github.com/sashabaranov/go-openai v1.5.3
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.15.0
