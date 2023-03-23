@@ -50,10 +50,20 @@ func Chat(username, content string) string {
 	}
 
 	messages := append(history.history, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: content})
-	result, err := CreateChatCompletion(messages)
-	if err != nil {
-		fmt.Println(err)
-		return err.Error()
+	var result string
+	errCount := 0
+	for {
+		var err error
+		result, err = CreateChatCompletion(messages)
+		if err != nil {
+			fmt.Println(err)
+			if errCount > 3 {
+				return err.Error()
+			}
+			errCount++
+			continue
+		}
+		break
 	}
 	messages = append(messages, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleAssistant, Content: result})
 	history.history = messages
