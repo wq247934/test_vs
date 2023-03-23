@@ -80,6 +80,7 @@ func handleCli(username string, msg *openwechat.Message) {
 			fmt.Println(err)
 			return
 		}
+		return
 	}
 	mode, ok := userModMap[username]
 	if !ok {
