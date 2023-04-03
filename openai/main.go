@@ -1,36 +1,35 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	openai "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai"
 	"github.com/spf13/viper"
+	"test_vs/openai/chat"
+	"test_vs/openai/image"
+	"test_vs/openai/service"
 )
 
-func main() {
+var (
+	sk     string
+	url    string
+	client *openai.Client
+)
+
+func init() {
 	v := viper.GetViper()
 	v.SetConfigFile("config.yaml")
-	v.GetString("openai.sk")
-	config := openai.DefaultConfig(v.GetString("openai.sk"))
-	config.BaseURL = v.GetString("openai.base_url")
-	client := openai.NewClientWithConfig(config)
-	resp, err := client.CreateChatCompletion(
-		context.Background(),
-		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: "Hello!",
-				},
-			},
-		},
-	)
-
-	if err != nil {
-		fmt.Printf("ChatCompletion error: %v\n", err)
-		return
+	if err := v.ReadInConfig(); err != nil {
+		panic(err)
 	}
+	sk = v.GetString("openai.sk")
+	url = v.GetString("openai.url")
+	config := openai.DefaultConfig(sk)
+	config.BaseURL = url
+	client = openai.NewClientWithConfig(config)
+}
 
-	fmt.Println(resp.Choices[0].Message.Content)
+func main() {
+	chat.InitChatClient(client)
+	image.InitImageClient(client)
+	chat.StartClearHistoryJob()
+	service.StartServer()
 }
