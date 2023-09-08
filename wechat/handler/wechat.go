@@ -69,10 +69,11 @@ func handleCli(username string, msg *openwechat.Message) {
 		userModMap[username] = gameMode
 		msg.ReplyText("已开启")
 	} else if strings.Contains(msg.Content, "画一个") {
-		imgBytes, err := chat_gpt.CreateImage(msg.Content)
+		prompt := strings.ReplaceAll(msg.Content, "画一个", "")
+		imgBytes, err := chat_gpt.CreateImage(prompt)
 		if err != nil {
 			fmt.Println(err)
-			imgBytes, _ = chat_gpt.CreateImage(msg.Content)
+			imgBytes, _ = chat_gpt.CreateImage(prompt)
 			return
 		}
 		_, err = msg.ReplyImage(bytes.NewReader(imgBytes))

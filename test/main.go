@@ -4,6 +4,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"github.com/spf13/viper"
 	"io"
 	"log"
 	"os"
@@ -11,7 +12,7 @@ import (
 )
 
 func main() {
-	dir := "/Users/wangqian/Documents/go-project/test_vs/test/certs"
+	dir := "/root/work/release/etc/certs/"
 
 	// 读取目录内容
 	files, err := os.ReadDir(dir)
@@ -35,13 +36,21 @@ func main() {
 					oldPath := filepath.Join(subDir, subFile.Name())
 					newPath := filepath.Join(dnsDir, subFile.Name())
 					fmt.Printf("Moving %s to %s\n", oldPath, newPath)
-					if subFile.Name() == "fullchain.pem" {
-						leafBytes := parseLeaf(filepath.Join(subDir, subFile.Name()))
+
+					if subFile.Name() == "config.yaml" {
+						leafBytes, leaf := parseLeaf(filepath.Join(subDir, "fullchain.pem"))
 						os.WriteFile(filepath.Join(dnsDir, "leaf.pem"), leafBytes, 0755)
-					}
-					err := copyFile(oldPath, newPath)
-					if err != nil {
-						log.Fatal(err)
+						conf := viper.New()
+						conf.SetConfigFile(filepath.Join(dnsDir, "config.yaml"))
+						conf.Set("domain", leaf.Subject.CommonName)
+						conf.Set("algo", "algo")
+						conf.Set("method", "dns01")
+						conf.WriteConfig()
+					} else {
+						err := copyFile(oldPath, newPath)
+						if err != nil {
+							log.Fatal(err)
+						}
 					}
 				}
 			}
@@ -70,7 +79,7 @@ func copyFile(src, dst string) error {
 	return out.Close()
 }
 
-func parseLeaf(path string) []byte {
+func parseLeaf(path string) ([]byte, *x509.Certificate) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
@@ -88,13 +97,13 @@ func parseLeaf(path string) []byte {
 			if err != nil {
 				log.Fatal(err)
 			}
-			if len(cert.DNSNames) != 0 {
+			if !cert.IsCA {
 				return pem.EncodeToMemory(
-					&pem.Block{Type: "CERTIFICATE", Bytes: block.Bytes})
+					&pem.Block{Type: "CERTIFICATE", Bytes: block.Bytes}), cert
 			}
 		}
 
 		data = rest
 	}
-	return nil
+	return nil, nil
 }
