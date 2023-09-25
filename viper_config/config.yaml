@@ -1,5 +1,5 @@
 algo: rsa
-domain: vac.senhe-inc.com
+domain: 'vac.senhe-inc.com'
 expire_time: 2023-11-29T19:55:13.865388+08:00
 issue_time: 2023-08-31T19:55:13.865388+08:00
 method: http01
